@@ -1,0 +1,22 @@
+{
+  "name": "LunchCrewWebInterface",
+  "version": "0.0.1",
+  "homepage": "https://github.com/jaegerpicker/LunchCrewWebInterface",
+  "authors": [
+    "Shawn Campbell <jaegerpicker@gmail.com>"
+  ],
+  "description": "Web interface for lunch crew api",
+  "main": "js/index.js",
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "ember": "~1.5.0"
+  }
+}

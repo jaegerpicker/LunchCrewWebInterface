@@ -18,5 +18,12 @@
   "bugs": {
     "url": "https://github.com/jaegerpicker/LunchCrewWebInterface/issues"
   },
-  "homepage": "https://github.com/jaegerpicker/LunchCrewWebInterface"
+  "homepage": "https://github.com/jaegerpicker/LunchCrewWebInterface",
+  "dependencies": {
+    "gulp": "~3.6.0",
+    "bower": "~1.3.2"
+  },
+  "devDependencies": {
+    "gulp-bower": "0.0.4"
+  }
 }
