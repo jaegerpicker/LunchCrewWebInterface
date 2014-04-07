@@ -1,0 +1,22 @@
+{
+  "name": "LunchCrewWebInterface",
+  "version": "0.0.1",
+  "description": "A single page app to allow users to vote on a lunch location",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "testem"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jaegerpicker/LunchCrewWebInterface.git"
+  },
+  "author": "Shawn Campbell <jaegerpicker@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jaegerpicker/LunchCrewWebInterface/issues"
+  },
+  "homepage": "https://github.com/jaegerpicker/LunchCrewWebInterface"
+}
