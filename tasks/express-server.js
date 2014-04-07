@@ -41,15 +41,10 @@ module.exports = function(grunt) {
     if (target === 'debug') {
       // For `expressServer:debug`
 
-      // Add livereload middleware after lock middleware if enabled
+      // Add livereload middlware after lock middleware if enabled
       if (Helpers.isPackageAvailable("connect-livereload")) {
-        var liveReloadPort = grunt.config('watch.options.livereload');
-        app.use(require("connect-livereload")({port: liveReloadPort}));
+        app.use(require("connect-livereload")());
       }
-
-      // YUIDoc serves static HTML, so just serve the index.html
-      app.all('/docs', function(req, res) { res.redirect(302, '/docs/index.html'); });
-      app.use(static({ urlRoot: '/docs', directory: 'docs' }));
 
       // These three lines simulate what the `copy:assemble` task does
       app.use(static({ urlRoot: '/config', directory: 'config' }));
