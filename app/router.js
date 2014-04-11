@@ -1,11 +1,17 @@
-var Router = Ember.Router.extend(); // ensure we don't share routes between all Router instances
+define(function(require, exports, module) {
+  "use strict";
 
-Router.map(function(){
-  this.resource('todos', { path: '/' }, function() {
-    // additional child routes
-    this.route('active');
-    this.route('completed');
+  // External dependencies.
+  var Backbone = require("backbone");
+
+  // Defining the application router.
+  module.exports = Backbone.Router.extend({
+    routes: {
+      "": "index"
+    },
+
+    index: function() {
+      console.log("Welcome to your / route.");
+    }
   });
 });
-
-export default Router;

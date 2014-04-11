@@ -1,229 +1,222 @@
 module.exports = function(grunt) {
-  // To support Coffeescript, SASS, LESS and others, just install
-  // the appropriate grunt package and it will be automatically included
-  // in the build process:
-  //
-  // * for Coffeescript, run `npm install --save-dev grunt-contrib-coffee`
-  //
-  // * for SCSS (without SASS), run `npm install --save-dev grunt-sass`
-  // * for SCSS/SASS support (may be slower), run
-  //   `npm install --save-dev grunt-contrib-sass`
-  //   This depends on the ruby sass gem, which can be installed with
-  //   `gem install sass`
-  // * for Compass, run `npm install --save-dev grunt-contrib-compass`
-  //   This depends on the ruby compass gem, which can be installed with
-  //   `gem install compass`
-  //   You should not install SASS if you have installed Compass.
-  //
-  // * for LESS, run `npm install --save-dev grunt-contrib-less`
-  //
-  // * for Stylus/Nib, `npm install --save-dev grunt-contrib-stylus`
-  //
-  // * for Emblem, run the following commands:
-  //   `npm uninstall --save-dev grunt-ember-templates`
-  //   `npm install --save-dev grunt-emblem`
-  //   `bower install emblem.js --save`
-  //
-  // * For EmberScript, run `npm install --save-dev grunt-ember-script`
-  //
-  // * for LiveReload, `npm install --save-dev connect-livereload`
-  //
-  // * for displaying the execution time of the grunt tasks,
-  //   `npm install --save-dev time-grunt`
-  //
-  // * for minimizing the index.html at the end of the dist task
-  //   `npm install --save-dev grunt-contrib-htmlmin`
-  //
-  // * for minimizing images in the dist task
-  //   `npm install --save-dev grunt-contrib-imagemin`
-  //
-  // * for using images based CSS sprites (http://youtu.be/xD8DW6IQ6r0)
-  //   `npm install --save-dev grunt-fancy-sprites`
-  //   `bower install --save fancy-sprites-scss`
-  //
-  // * for automatically adding CSS vendor prefixes (autoprefixer)
-  //   `npm install --save-dev grunt-autoprefixer`
-  //
+  "use strict";
 
-  var Helpers = require('./tasks/helpers'),
-      filterAvailable = Helpers.filterAvailableTasks,
-      _ = grunt.util._,
-      path = require('path');
+  grunt.initConfig({
+    // Wipe out previous builds and test reporting.
+    clean: ["dist/", "test/reports"],
 
-  Helpers.pkg = require("./package.json");
+    // Run your source code through JSHint's defaults.
+    jshint: ["app/**/*.js"],
 
-  if (Helpers.isPackageAvailable("time-grunt")) {
-    require("time-grunt")(grunt);
-  }
+    // This task uses James Burke's excellent r.js AMD builder to take all
+    // modules and concatenate them into a single file.
+    requirejs: {
+      release: {
+        options: {
+          mainConfigFile: "app/config.js",
+          generateSourceMaps: true,
+          include: ["main"],
+          out: "dist/source.min.js",
+          optimize: "uglify2",
 
-  // Loads task options from `tasks/options/` and `tasks/custom-options`
-  // and loads tasks defined in `package.json`
-  var config = _.extend({},
-    require('load-grunt-config')(grunt, {
-        configPath: path.join(__dirname, 'tasks/options'),
-        loadGruntTasks: false,
-        init: false
-      }),
-    require('load-grunt-config')(grunt, { // Custom options have precedence
-        configPath: path.join(__dirname, 'tasks/custom-options'),
-        init: false
-      })
-  );
+          // Since we bootstrap with nested `require` calls this option allows
+          // R.js to find them.
+          findNestedDependencies: true,
 
-  grunt.loadTasks('tasks'); // Loads tasks in `tasks/` folder
+          // Include a minimal AMD implementation shim.
+          name: "almond",
 
-  config.env = process.env;
+          // Setting the base url to the distribution directory allows the
+          // Uglify minification process to correctly map paths for Source
+          // Maps.
+          baseUrl: "dist/app",
 
+          // Wrap everything in an IIFE.
+          wrap: true,
 
-  // App Kit's Main Tasks
-  // ====================
+          // Do not preserve any license comments when working with source
+          // maps.  These options are incompatible.
+          preserveLicenseComments: false
+        }
+      }
+    },
 
+    // This task simplifies working with CSS inside Backbone Boilerplate
+    // projects.  Instead of manually specifying your stylesheets inside the
+    // HTML, you can use `@imports` and this task will concatenate only those
+    // paths.
+    styles: {
+      // Out the concatenated contents of the following styles into the below
+      // development file path.
+      "dist/styles.css": {
+        // Point this to where your `index.css` file is location.
+        src: "app/styles/index.css",
 
-  // Generate the production version
-  // ------------------
-  grunt.registerTask('dist', "Build a minified & production-ready version of your app.", [
-                     'clean:dist',
-                     'build:dist',
-                     'copy:assemble',
-                     'createDistVersion'
-                     ]);
+        // The relative path to use for the @imports.
+        paths: ["app/styles"],
 
+        // Rewrite image paths during release to be relative to the `img`
+        // directory.
+        forceRelative: "/app/img/"
+      }
+    },
 
-  // Default Task
-  // ------------------
-  grunt.registerTask('default', "Build (in debug mode) & test your application.", ['test']);
+    // Minify the distribution CSS.
+    cssmin: {
+      release: {
+        files: {
+          "dist/styles.min.css": ["dist/styles.css"]
+        }
+      }
+    },
 
+    server: {
+      options: {
+        host: "0.0.0.0",
+        port: 8000
+      },
 
-  // Servers
-  // -------------------
-  grunt.registerTask('server', "Run your server in development mode, auto-rebuilding when files change.", function(proxyMethod) {
-    var expressServerTask = 'expressServer:debug';
-    if (proxyMethod) {
-      expressServerTask += ':' + proxyMethod;
+      development: {},
+
+      release: {
+        options: {
+          prefix: "dist"
+        }
+      },
+
+      test: {
+        options: {
+          forever: false,
+          port: 8001
+        }
+      }
+    },
+
+    processhtml: {
+      release: {
+        files: {
+          "dist/index.html": ["index.html"]
+        }
+      }
+    },
+
+    // Move vendor and app logic during a build.
+    copy: {
+      release: {
+        files: [
+          { src: ["app/**"], dest: "dist/" },
+          { src: "vendor/**", dest: "dist/" }
+        ]
+      }
+    },
+
+    compress: {
+      release: {
+        options: {
+          archive: "dist/source.min.js.gz"
+        },
+
+        files: ["dist/source.min.js"]
+      }
+    },
+
+    // Unit testing is provided by Karma.  Change the two commented locations
+    // below to either: mocha, jasmine, or qunit.
+    karma: {
+      options: {
+        basePath: process.cwd(),
+        singleRun: true,
+        captureTimeout: 7000,
+        autoWatch: true,
+        logLevel: "ERROR",
+
+        reporters: ["dots", "coverage"],
+        browsers: ["PhantomJS"],
+
+        // Change this to the framework you want to use.
+        frameworks: ["mocha"],
+
+        plugins: [
+          "karma-jasmine",
+          "karma-mocha",
+          "karma-qunit",
+          "karma-phantomjs-launcher",
+          "karma-coverage"
+        ],
+
+        preprocessors: {
+          "app/**/*.js": "coverage"
+        },
+
+        coverageReporter: {
+          type: "lcov",
+          dir: "test/coverage"
+        },
+
+        files: [
+          // You can optionally remove this or swap out for a different expect.
+          "vendor/bower/chai/chai.js",
+          "vendor/bower/requirejs/require.js",
+          "test/runner.js",
+
+          { pattern: "app/**/*.*", included: false },
+          // Derives test framework from Karma configuration.
+          {
+            pattern: "test/<%= karma.options.frameworks[0] %>/**/*.spec.js",
+            included: false
+          },
+          { pattern: "vendor/**/*.js", included: false }
+        ]
+      },
+
+      // This creates a server that will automatically run your tests when you
+      // save a file and display results in the terminal.
+      daemon: {
+        options: {
+          singleRun: false
+        }
+      },
+
+      // This is useful for running the tests just once.
+      run: {
+        options: {
+          singleRun: true
+        }
+      }
+    },
+
+    coveralls: {
+      options: {
+        coverage_dir: "test/coverage/"
+      }
     }
-
-    grunt.task.run(['clean:debug',
-                    'build:debug',
-                    expressServerTask,
-                    'watch'
-                    ]);
   });
 
-  grunt.registerTask('server:dist', "Build and preview a minified & production-ready version of your app.", [
-                     'dist',
-                     'expressServer:dist:keepalive'
-                     ]);
+  // Grunt contribution tasks.
+  grunt.loadNpmTasks("grunt-contrib-clean");
+  grunt.loadNpmTasks("grunt-contrib-jshint");
+  grunt.loadNpmTasks("grunt-contrib-cssmin");
+  grunt.loadNpmTasks("grunt-contrib-copy");
+  grunt.loadNpmTasks("grunt-contrib-compress");
 
+  // Third-party tasks.
+  grunt.loadNpmTasks("grunt-karma");
+  grunt.loadNpmTasks("grunt-karma-coveralls");
+  grunt.loadNpmTasks("grunt-processhtml");
 
-  // Testing
-  // -------
-  grunt.registerTask('test', "Run your apps's tests once. Uses Google Chrome by default.", [
-                     'clean:debug', 'build:debug', 'testem:ci:basic' ]);
+  // Grunt BBB tasks.
+  grunt.loadNpmTasks("grunt-bbb-server");
+  grunt.loadNpmTasks("grunt-bbb-requirejs");
+  grunt.loadNpmTasks("grunt-bbb-styles");
 
-  grunt.registerTask('test:ci', "Run your app's tests in PhantomJS. For use in continuous integration (i.e. Travis CI).", [
-                     'clean:debug', 'build:debug', 'testem:ci:basic' ]);
-
-  grunt.registerTask('test:browsers', "Run your app's tests in multiple browsers (see tasks/options/testem.js for configuration).", [
-                     'clean:debug', 'build:debug', 'testem:ci:browsers' ]);
-
-  grunt.registerTask('test:server', "Alias to `testem:run:basic`. Be sure to install testem first using `npm install -g testem`", [
-                     'testem:run:basic' ]);
-
-  // Worker tasks
-  // =================================
-
-  grunt.registerTask('build:dist', filterAvailable([
-                     'createResultDirectory', // Create directoy beforehand, fixes race condition
-                     'fancySprites:create',
-                     'concurrent:buildDist', // Executed in parallel, see config below
-                     ]));
-
-  grunt.registerTask('build:debug', filterAvailable([
-                     'jshint:tooling',
-                     'createResultDirectory', // Create directoy beforehand, fixes race condition
-                     'fancySprites:create',
-                     'concurrent:buildDebug', // Executed in parallel, see config below
-                     ]));
-
-  grunt.registerTask('createDistVersion', filterAvailable([
-                     'useminPrepare', // Configures concat, cssmin and uglify
-                     'concat', // Combines css and javascript files
-
-                     'cssmin', // Minifies css
-                     'uglify', // Minifies javascript
-                     'imagemin', // Optimizes image compression
-                     // 'svgmin',
-                     'copy:dist', // Copies files not covered by concat and imagemin
-
-                     'rev', // Appends 8 char hash value to filenames
-                     'usemin', // Replaces file references
-                     'htmlmin:dist' // Removes comments and whitespace
-                     ]));
-
-  // Parallelize most of the build process
-  _.merge(config, {
-    concurrent: {
-      buildDist: [
-        "buildTemplates:dist",
-        "buildScripts",
-        "buildStyles",
-        "buildIndexHTML:dist"
-      ],
-      buildDebug: [
-        "buildTemplates:debug",
-        "buildScripts",
-        "buildStyles",
-        "buildIndexHTML:debug"
-      ]
-    }
-  });
-
-  // Templates
-  grunt.registerTask('buildTemplates:dist', filterAvailable([
-                     'emblem:compile',
-                     'emberTemplates:dist'
-                     ]));
-
-  grunt.registerTask('buildTemplates:debug', filterAvailable([
-                     'emblem:compile',
-                     'emberTemplates:debug'
-                     ]));
-
-  // Scripts
-  grunt.registerTask('buildScripts', filterAvailable([
-                     'jshint:app',
-                     'jshint:tests',
-                     'coffee',
-                     'emberscript',
-                     'copy:javascriptToTmp',
-                     'transpile',
-                     'concat_sourcemap'
-                     ]));
-
-  // Styles
-  grunt.registerTask('buildStyles', filterAvailable([
-                     'compass:compile',
-                     'sass:compile',
-                     'less:compile',
-                     'stylus:compile',
-                     'copy:cssToResult',
-                     'autoprefixer:app'
-                     ]));
-
-  // Index HTML
-  grunt.registerTask('buildIndexHTML:dist', [
-                     'preprocess:indexHTMLDistApp',
-                     'preprocess:indexHTMLDistTests'
-                     ]);
-
-  grunt.registerTask('buildIndexHTML:debug', [
-                     'preprocess:indexHTMLDebugApp',
-                     'preprocess:indexHTMLDebugTests'
-                     ]);
-  
-  grunt.registerTask('createResultDirectory', function() {
-    grunt.file.mkdir('tmp/result');
-  });
-
-  grunt.initConfig(config);
+  // When running the default Grunt command, just lint the code.
+  grunt.registerTask("default", [
+    "clean",
+    "jshint",
+    "processhtml",
+    "copy",
+    "requirejs",
+    "styles",
+    "cssmin",
+  ]);
 };

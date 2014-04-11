@@ -1,13 +1,14 @@
-import Resolver from 'ember/resolver';
+define(function(require, exports, module) {
+  "use strict";
 
-var App = Ember.Application.extend({
-  LOG_ACTIVE_GENERATION: true,
-  LOG_MODULE_RESOLVER: true,
-  LOG_TRANSITIONS: true,
-  LOG_TRANSITIONS_INTERNAL: true,
-  LOG_VIEW_LOOKUPS: true,
-  modulePrefix: 'appkit', // TODO: loaded via config
-  Resolver: Resolver['default']
+  // External dependencies.
+  var _ = require("underscore");
+  var $ = require("jquery");
+  var Backbone = require("backbone");
+
+  // Alias the module for easier identification.
+  var app = module.exports;
+
+  // The root path to run the application through.
+  app.root = "/";
 });
-
-export default App;
