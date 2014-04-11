@@ -11,16 +11,11 @@ PlaceToEat.reopenClass({
   FIXTURES: [
   {
     id: "1",
-    title: 'install EAK',
-    isCompleted: true
-  }, {
-    id: "2",
-    title: 'install additional dependencies',
-    isCompleted: true
-  }, {
-    id: "3",
-    title: 'develop amazing things',
-    isCompleted: false
+    name: 'Flatbeard',
+    type: 'pizza',
+    address: new Address(),
+    userAdded: new User(),
+    addedDate: new Date()
   }
 ]});
 
