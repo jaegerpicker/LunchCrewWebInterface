@@ -3,9 +3,9 @@
 require.config({
   paths: {
     "vendor": "../vendor",
-    "almond": "../vendor/bower/almond/almond",
-    "underscore": "../vendor/bower/lodash/dist/lodash.underscore",
-    "jquery": "../vendor/bower/jquery/dist/jquery",
-    "backbone": "../vendor/bower/backbone/backbone"
+    "almond": "../vendor/almond/almond",
+    "underscore": "../vendor/lodash/dist/lodash.underscore",
+    "jquery": "../vendor/jquery/dist/jquery",
+    "backbone": "../vendor/backbone/backbone"
   }
 });
